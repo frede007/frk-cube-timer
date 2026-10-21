@@ -1,89 +1,123 @@
 <script>
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from './assets/vite.svg'
-  import heroImg from './assets/hero.png'
-  import Counter from './lib/Counter.svelte'
+  const HOLD_MS = 550; // TODO: vēlāk tiks iestatīts iestatījumos (IES-01)
+
+  // Sāvokļi: idle, holding, ready, running, stopped
+  // Notikumi: down, up, holdElapsed, cancel
+  const transitions = {
+    idle: { down: 'holding' },
+    holding: { up: 'idle', holdElapsed: 'ready', cancel: 'idle' },
+    ready: { up: 'running', cancel: 'idle' },
+    running: { down: 'stopped' },
+    stopped: { up: 'idle' },
+  };
+
+  let state = $state('idle');
+  let elapsedMs = $state(0);
+
+  let startTime = 0;
+  let frameId = 0;
+  let holdTimer = 0;
+
+  function send(event) {
+    const now = performance.now();
+    const next = transitions[state]?.[event];
+    if (!next) return; // ja notikums nav derīgs pašreizējā stāvoklī, tad atgriezt
+    leave(state);
+    state = next;
+    enter(next, now);
+  }
+
+  function enter(newState, now) {
+    if (newState === 'holding') {
+      holdTimer = setTimeout(() => send('holdElapsed'), HOLD_MS);
+    } else if (newState === 'ready') {
+      elapsedMs = 0;
+    } else if (newState === 'running') {
+      startTime = now;
+      frameId = requestAnimationFrame(tick);
+    } else if (newState === 'stopped') {
+      elapsedMs = now - startTime;
+    }
+  }
+
+  function leave(oldState) {
+    if (oldState === 'holding') {
+      clearTimeout(holdTimer);
+    } else if (oldState === 'running') {
+      cancelAnimationFrame(frameId);
+    }
+  }
+
+  function tick() {
+    elapsedMs = performance.now() - startTime;
+    frameId = requestAnimationFrame(tick);
+  }
+
+  function onKeydown(event) {
+    if (event.code !== 'Space') return;
+    event.preventDefault(); // neļauj lapai ritināties, kad nospiež Space
+    if (event.repeat) return; // ignorē atkārtotus nospiešanas notikumus, kad poga tiek turēta nospiesta
+    send('down');
+  }
+
+  function onKeyup(event) {
+    if (event.code !== 'Space') return;
+    event.preventDefault();
+    send('up');
+  }
+
+  // Ja logs zaudē fokusu, pogas atlaišanas notikums nekad nenotiek.
+  function onBlur() {
+    send('cancel');
+  }
+
+  // Rāda 12.34 zem minūtes un 1:02.34 virs tās. Apgriež, nevis noapaļo, pēc WCA noteikumiem.
+  function formatTime(ms) {
+    const hundredths = Math.floor(ms / 10);
+    const cs = String(hundredths % 100).padStart(2, '0');
+    const totalSeconds = Math.floor(hundredths / 100);
+    const seconds = totalSeconds % 60;
+    const minutes = Math.floor(totalSeconds / 60);
+    if (minutes > 0) {
+      return `${minutes}:${String(seconds).padStart(2, '0')}.${cs}`;
+    }
+    return `${seconds}.${cs}`;
+  }
 </script>
 
-<section id="center">
-  <div class="hero">
-    <img src={heroImg} class="base" width="170" height="179" alt="" />
-    <img src={svelteLogo} class="framework" alt="Svelte logo" />
-    <img src={viteLogo} class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/App.svelte</code> and save to test <code>HMR</code></p>
-  </div>
-  <Counter />
-</section>
+<svelte:window onkeydown={onKeydown} onkeyup={onKeyup} onblur={onBlur} />
 
-<div class="ticks"></div>
-
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true">
-      <use href="/icons.svg#documentation-icon"></use>
-    </svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank" rel="noreferrer">
-          <img class="logo" src={viteLogo} alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://svelte.dev/" target="_blank" rel="noreferrer">
-          <img class="button-icon" src={svelteLogo} alt="" />
-          Learn more
-        </a>
-      </li>
-    </ul>
+<main>
+  <div
+    class="time"
+    class:holding={state === 'holding'}
+    class:ready={state === 'ready'}
+  >
+    {formatTime(elapsedMs)}
   </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true">
-      <use href="/icons.svg#social-icon"></use>
-    </svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li>
-        <a href="https://github.com/vitejs/vite" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#github-icon"></use>
-          </svg>
-          GitHub
-        </a>
-      </li>
-      <li>
-        <a href="https://chat.vite.dev/" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#discord-icon"></use>
-          </svg>
-          Discord
-        </a>
-      </li>
-      <li>
-        <a href="https://x.com/vite_js" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#x-icon"></use>
-          </svg>
-          X.com
-        </a>
-      </li>
-      <li>
-        <a href="https://bsky.app/profile/vite.dev" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#bluesky-icon"></use>
-          </svg>
-          Bluesky
-        </a>
-      </li>
-    </ul>
-  </div>
-</section>
+</main>
 
-<div class="ticks"></div>
-<section id="spacer"></section>
+<style>
+  main {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .time {
+    font-size: clamp(4rem, 20vw, 14rem);
+    line-height: 1;
+    /* Katrs cipars tiek zīmēts ar vienādu platumu, lai displejs neraustītos */
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+  }
+
+  .time.holding {
+    color: var(--hold);
+  }
+
+  .time.ready {
+    color: var(--ready);
+  }
+</style>
