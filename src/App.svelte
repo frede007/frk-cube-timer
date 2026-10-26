@@ -4,14 +4,13 @@
   import { createSolve } from './core/solve.js';
   import SolveList from './lib/solves/SolveList.svelte';
 
-
+  /** @type {import('./core/solve.js').Solve[]} */
   let solves = $state([]);
   let nextNumber = 1;
 
   $inspect(solves);
  
-  // Taimera dati (Salikšanas laika dati) nonāk šeit. Vēlāk šeit tiks izsaukta
-  // liciena saglabāšana (LIC-01) no src/storage.
+  // Taimera dati (Salikšanas laika dati) nonāk šeit. Vēlāk šeit tiks izsaukta liciena saglabāšana (LIC-01) no src/storage.
   /**
   * @param {{ timeMs: number, startedAt?: number }} result
   */
@@ -20,12 +19,20 @@
     solves.push(solve);
     nextNumber++;
   }
+
+  // Laika dzēšanas funkcija. Vēlāk šeit tiks izsaukta liciena dzēšana (LIC-04) no src/storage.
+  /**
+   * @param {number} solveNumber
+  */
+  function handleDeleteSolve(solveNumber) {
+    solves = solves.filter(solve => solve.number !== solveNumber)
+  }
 </script>
  
 <main>
   <aside class="side">
     <div class="list-box">
-      <SolveList {solves} />
+      <SolveList {solves} ondelete={handleDeleteSolve}/>
     </div>
   </aside>
 
