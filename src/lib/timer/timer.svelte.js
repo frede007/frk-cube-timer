@@ -1,7 +1,7 @@
 // Taimera kontrolieris: savieno stāvokļu automātu (core) ar pārlūku (laiks, taustiņi).
 import { transition } from '../../core/timerMachine.js';
 
-const DEFAULT_HOLD_MS = 550; // TODO: vēlāk no iestatījumiem (IES-01)
+const DEFAULT_HOLD_MS = 0; // TODO: vēlāk no iestatījumiem (IES-01)
 
 /**
  * @param {{ getHoldMs?: () => number, onStopped?: (result: { timeMs: number, startedAt: number }) => void }} options
