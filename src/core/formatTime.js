@@ -1,5 +1,10 @@
 // Rāda 12.34 zem minūtes un 1:02.34 virs tās.
 // Apgriež, nevis noapaļo, pēc WCA noteikumiem.
+/**
+ * Formatē laiku milisekundēs uz vēlamo formātu.
+ * @param {number} ms 
+ * @returns {string}
+ */
 export function formatTime(ms) {
   const hundredths = Math.floor(ms / 10);
   const cs = String(hundredths % 100).padStart(2, '0');

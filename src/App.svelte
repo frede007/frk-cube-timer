@@ -6,11 +6,11 @@
 
   /** @type {import('./core/solve.js').Solve[]} */
   let solves = $state([]);
-  let nextNumber = 1;
+  let nextNumber = 1; // Vēlāk katrai sesijai atsevišķi. TODO: Pievienot DB moduļiem - liciena kārtas numuru.
 
   $inspect(solves);
  
-  // Taimera dati (Salikšanas laika dati) nonāk šeit. Vēlāk šeit tiks izsaukta liciena saglabāšana (LIC-01) no src/storage.
+  // Taimera dati (Salikšanas laika dati) tiek padoti liciena saglabāšanas funkcijai.
   /**
   * @param {{ timeMs: number, startedAt?: number }} result
   */
@@ -60,8 +60,6 @@
   .list-box {
     width: 75%;
     height: 50%;
-    overflow-y: auto;
-    display: flex;
   }
 </style>
  

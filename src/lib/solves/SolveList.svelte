@@ -1,43 +1,62 @@
 <script>
   import { formatTime } from '../../core/formatTime.js';
-  import { formatDateTime } from '../../core/formatDateTime.js';  
+  import { formatDateTime } from '../../core/formatDateTime.js';
+  import SessionsStats from '../stats/SessionStats.svelte';
 
   /**
    * @type {{ solves: import('../../core/solve.js').Solve[], 
               ondelete?: (solveNumber: number) => void }}
-   */
+  */
   let { solves, ondelete } = $props();
 </script>
 
-<!-- Saraksts ar visiem salikšanas rezultātiem. -->
-<table class="solve-list">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Time</th>
-      <th>Date</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    {#each [...solves].reverse() as solve, i (solve.number)} <!-- Licieniem jābūt kārtotiem no jaunākā līdz vecākajam -->
-      <tr>
-        <td>{solves.length - i}</td>
-        <td>{formatTime(solve.timeMs)}</td>
-        <td>{formatDateTime(solve.startedAt)}</td>
-        <td>
-          <button class="delete-btn" onclick={() => ondelete?.(solve.number)}>
-            Delete
-          </button>
-        </td>
-      </tr>
-    {:else}
-      <tr><td colspan="4">No solves found</td></tr>
-    {/each}
-  </tbody>
-</table>
+<div class="panel">
+  <SessionsStats {solves} />
+  <div class="rows">
+    <!-- Saraksts ar visiem salikšanas rezultātiem. -->
+    <table class="solve-list">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Time</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each [...solves].reverse() as solve, i (solve.number)} <!-- Licieniem jābūt kārtotiem no jaunākā līdz vecākajam -->
+          <tr>
+            <td>{solves.length - i}</td>
+            <td>{formatTime(solve.timeMs)}</td>
+            <td>{formatDateTime(solve.startedAt)}</td>
+            <td>
+              <button class="delete-btn" onclick={() => ondelete?.(solve.number)}>
+                Delete
+              </button>
+            </td>
+          </tr>
+        {:else}
+          <tr><td colspan="4">No solves found</td></tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
+</div>
 
 <style>
+  .panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rows {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+  }
+
   .solve-list {
     width: 100%;
     height: max-content; /* lai tabula neaizņemtu visu doto horizontālo vietu */

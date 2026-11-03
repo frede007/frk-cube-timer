@@ -1,11 +1,13 @@
+/** @typedef {'OK' | '+2' | 'DNF'} Penalty */
+
 /**
  * @typedef {Object} Solve
  * @property {number} number
  * @property {number} startedAt
  * @property {number} timeMs
  * @property {string} comment
- * @property {'OK' | '+2' | 'DNF'} inspectionPenalty
- * @property {'OK' | '+2' | 'DNF'} solvePenalty
+ * @property {Penalty} inspectionPenalty
+ * @property {Penalty} solvePenalty
  */
 
 /**
@@ -14,12 +16,30 @@
  * @param {number} props.startedAt
  * @param {number} props.timeMs
  * @param {string} [props.comment]
- * @param {'OK' | '+2' | 'DNF'} [props.inspectionPenalty]
- * @param {'OK' | '+2' | 'DNF'} [props.solvePenalty]
+ * @param {Penalty} [props.inspectionPenalty]
+ * @param {Penalty} [props.solvePenalty]
  * @returns {Solve}
  */
 
 export function createSolve({ number, startedAt, timeMs, comment = '', inspectionPenalty = 'OK', solvePenalty = 'OK' }) {
     return { number , startedAt , timeMs , comment , inspectionPenalty , solvePenalty };
+}
+
+/**
+ * Atgriež liciena laiku ms, ieskaitot sodus, vai null, ja liciens ir DNF.
+ * @param {Solve} solve
+ * @returns {number | null}
+ */
+export function fullSolveTime(solve) {
+  const { timeMs, inspectionPenalty, solvePenalty } = solve;
+
+  if (inspectionPenalty === 'DNF' || solvePenalty === 'DNF') {
+    return null;
+  }
+
+  let total = timeMs;
+  if (inspectionPenalty === '+2') total += 2000;
+  if (solvePenalty === '+2') total += 2000;
+  return total;
 }
 
