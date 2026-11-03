@@ -6,12 +6,12 @@ import { bestSolve , sessionMean } from './stats.js';
  
 /**
  * Palīgfunkcija: izveido licienu ar norādīto numuru un laiku. startedAt = numurs, lai saraksts būtu hronoloģiski sakārtots.
- * @param {number} number
+ * @param {number} startedAt
  * @param {number} timeMs
  * @param {{ inspectionPenalty?: Penalty, solvePenalty?: Penalty }} [penalties]
  */
-function makeSolve(number, timeMs, penalties = {}) {
-  return createSolve({ number, startedAt: number, timeMs, ...penalties });
+function makeSolve(startedAt, timeMs, penalties = {}) {
+  return createSolve({ startedAt, timeMs, ...penalties });
 }
  
 describe('bestSolve', () => {

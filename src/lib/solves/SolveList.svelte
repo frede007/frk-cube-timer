@@ -3,10 +3,7 @@
   import { formatDateTime } from '../../core/formatDateTime.js';
   import SessionsStats from '../stats/SessionStats.svelte';
 
-  /**
-   * @type {{ solves: import('../../core/solve.js').Solve[], 
-              ondelete?: (solveNumber: number) => void }}
-  */
+  /** @type {{ solves: import('../../storage/solves.js').SavedSolve[], ondelete?: (number: number) => void }} */
   let { solves, ondelete } = $props();
 </script>
 

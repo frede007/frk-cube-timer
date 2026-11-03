@@ -2,7 +2,6 @@
 
 /**
  * @typedef {Object} Solve
- * @property {number} number
  * @property {number} startedAt
  * @property {number} timeMs
  * @property {string} comment
@@ -12,7 +11,6 @@
 
 /**
  * @param {Object} props
- * @param {number} props.number
  * @param {number} props.startedAt
  * @param {number} props.timeMs
  * @param {string} [props.comment]
@@ -21,8 +19,8 @@
  * @returns {Solve}
  */
 
-export function createSolve({ number, startedAt, timeMs, comment = '', inspectionPenalty = 'OK', solvePenalty = 'OK' }) {
-    return { number , startedAt , timeMs , comment , inspectionPenalty , solvePenalty };
+export function createSolve({ startedAt, timeMs, comment = '', inspectionPenalty = 'OK', solvePenalty = 'OK' }) {
+    return { startedAt , timeMs , comment , inspectionPenalty , solvePenalty };
 }
 
 /**
