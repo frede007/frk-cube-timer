@@ -2,9 +2,12 @@
   import { formatTime } from '../../core/formatTime.js';
   import { formatDateTime } from '../../core/formatDateTime.js';
   import SessionsStats from '../stats/SessionStats.svelte';
+  /** @typedef {import('../../storage/solves.js').SavedSolve} SavedSolve */
 
-  /** @type {{ solves: import('../../storage/solves.js').SavedSolve[], ondelete?: (number: number) => void }} */
-  let { solves, ondelete } = $props();
+  /** @type {{ solves: SavedSolve[],
+               onselect?: (solve: SavedSolve) => void
+            }} */
+  let { solves, onselect } = $props();
 </script>
 
 <div class="panel">
@@ -16,24 +19,20 @@
         <tr>
           <th>#</th>
           <th>Time</th>
-          <th>Date</th>
-          <th>Action</th>
         </tr>
       </thead>
       <tbody>
         {#each [...solves].reverse() as solve, i (solve.number)} <!-- Licieniem jābūt kārtotiem no jaunākā līdz vecākajam -->
           <tr>
             <td>{solves.length - i}</td>
-            <td>{formatTime(solve.timeMs)}</td>
-            <td>{formatDateTime(solve.startedAt)}</td>
             <td>
-              <button class="delete-btn" onclick={() => ondelete?.(solve.number)}>
-                Delete
+              <button class="solve-time" onclick={() => onselect?.(solve)}> <!-- Nospiežot uz laika, solve objekts tiek padots onselect funkcijai -->
+                {formatTime(solve.timeMs)}
               </button>
             </td>
           </tr>
         {:else}
-          <tr><td colspan="4">No solves found</td></tr>
+          <tr><td colspan="2">No solves found</td></tr>
         {/each}
       </tbody>
     </table>
@@ -79,17 +78,16 @@
     font-weight: bold;
   }
 
-  .delete-btn {
-    background: transparent;
-    border: 1px solid #ccc;
-    padding: 0.25rem 0.5rem;
+  .solve-time {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
     cursor: pointer;
-    border-radius: 4px;
   }
 
-  .delete-btn:hover {
-    background-color: #ff4d4d;
-    color: white;
-    border-color: #ff4d4d;
+  .solve-time:hover {
+    text-decoration: underline;
   }
 </style>

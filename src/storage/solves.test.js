@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { beforeEach, afterAll, describe, it, expect } from 'vitest';
 import { db } from './db.js';
 import { createSession } from './sessions.js';
-import { saveSolve, deleteSolve, listSolves } from './solves.js';
+import { saveSolve, deleteSolve, listSolves, updateSolve } from './solves.js';
 import { createSolve } from '../core/solve.js';
 
 beforeEach(async () => {
@@ -20,7 +20,8 @@ describe('saveSolve', () => {
 
     const solve = createSolve({
       startedAt: 1000000,
-      timeMs: 12340
+      timeMs: 12340,
+      scramble: ''
     });
 
     const savedSolve = await saveSolve(session.id, solve);
@@ -39,15 +40,15 @@ describe('deleteSolve', () => {
     it('dzēš licienu no sesijas un saglabā pareizo numerāciju', async () => {
         const session = await createSession();
 
-        const solve1 = createSolve({ startedAt: 1000000, timeMs: 12340 });
-        const solve2 = createSolve({ startedAt: 2000000, timeMs: 23450 });
+        const solve1 = createSolve({ startedAt: 1000000, timeMs: 12340, scramble: '' });
+        const solve2 = createSolve({ startedAt: 2000000, timeMs: 23450, scramble: '' });
 
         await saveSolve(session.id, solve1);
         await saveSolve(session.id, solve2);
 
         await deleteSolve(session.id, 2);
 
-        const solve3 = createSolve({ startedAt: 3000000, timeMs: 34560 });
+        const solve3 = createSolve({ startedAt: 3000000, timeMs: 34560, scramble: '' });
         await saveSolve(session.id, solve3);
 
         const storedSolves = await listSolves(session.id);
@@ -65,8 +66,8 @@ describe('listSolves', () => {
     const session1 = await createSession();
     const session2 = await createSession();
 
-    const solve1 = createSolve({ startedAt: 1000, timeMs: 12000 });
-    const solve2 = createSolve({ startedAt: 2000, timeMs: 15000 });
+    const solve1 = createSolve({ startedAt: 1000, timeMs: 12000, scramble: '' });
+    const solve2 = createSolve({ startedAt: 2000, timeMs: 15000, scramble: '' });
 
     await saveSolve(session1.id, solve1);
     await saveSolve(session2.id, solve2);
@@ -105,7 +106,8 @@ describe('saveSolve errors', () => {
   it('neļauj saglabāt licienu neeksistējošā sesijā', async () => {
     const solve = createSolve({
       startedAt: 1000,
-      timeMs: 12000
+      timeMs: 12000,
+      scramble: ''
     });
 
     await expect(
@@ -130,7 +132,8 @@ it('nepalielina skaitītāju, ja liciena saglabāšana neizdodas', async () => {
 
   const solve = createSolve({
     startedAt: 2000,
-    timeMs: 12000
+    timeMs: 12000,
+    scramble: ''
   });
 
   await expect(
@@ -151,7 +154,8 @@ it('nedzēš licienus no citām sesijām', async () => {
 
   const solve = createSolve({
     startedAt: 1000,
-    timeMs: 12000
+    timeMs: 12000,
+    scramble: ''
   });
 
   await saveSolve(session1.id, solve);
@@ -165,4 +169,31 @@ it('nedzēš licienus no citām sesijām', async () => {
   expect(solves1).toHaveLength(0);
   expect(solves2).toHaveLength(1);
   expect(solves2[0].number).toBe(1);
+});
+
+it('atjaunina liciena komentāru', async () => {
+  const session = await createSession();
+  const saved = await saveSolve(session.id, createSolve({ startedAt: 1000, timeMs: 12000, scramble: '' }));
+
+  await updateSolve(session.id, saved.number, {
+    comment: 'Labs liciena sākums'
+  });
+
+  const solves = await listSolves(session.id);
+
+  expect(solves[0].comment).toBe('Labs liciena sākums');
+  expect(solves[0].timeMs).toBe(saved.timeMs);
+});
+
+it('atjaunina liciena sodu', async () => {
+  const session = await createSession();
+  const saved = await saveSolve(session.id, createSolve({ startedAt: 1000, timeMs: 12000, scramble: '' }));
+
+  await updateSolve(session.id, saved.number, {
+    solvePenalty: 'DNF'
+  });
+
+  const solves = await listSolves(session.id);
+
+  expect(solves[0].solvePenalty).toBe('DNF');
 });

@@ -1,14 +1,17 @@
 <script>
   import { onMount } from 'svelte';
   import { createSession, listSessions } from './storage/sessions.js';
-  import { listSolves , saveSolve, deleteSolve } from './storage/solves.js';
+  import { listSolves , saveSolve, deleteSolve , updateSolve } from './storage/solves.js';
   import Timer from './lib/timer/Timer.svelte';
   import { createSolve } from './core/solve.js';
   import { generateScramble } from './core/scramble.js';
   import SolveList from './lib/solves/SolveList.svelte';
   import ScrambleDisplay from './lib/scramble/ScrambleDisplay.svelte';
+  import SolveDetails from './lib/solves/SolveDetails.svelte';
 
-  /** @type {import('./storage/solves.js').SavedSolve[]} */
+  /** @typedef {import('./storage/solves.js').SavedSolve} SavedSolve */
+
+  /** @type {SavedSolve[]} */
   let solves = $state([]);
   let activeSessionId = $state(null);
   let loading = $state(true);
@@ -82,13 +85,58 @@
     try {
       await deleteSolve(activeSessionId, solveNumber);
 
-      solves = solves.filter(solve => solve.number !== solveNumber)
+      solves = solves.filter(solve => solve.number !== solveNumber);
+      handleCloseSolve(); // Aizver SolveDetails logu pēc dzēšanas
 
     } catch (error) {
       console.error('Failed to delete solve:', error);
       storageError = 'Failed to delete solve.';
     }
 
+  }
+
+  /** @type {SavedSolve | null} */
+  let selectedSolve = $state(null);
+
+  /** 
+   * @param {SavedSolve} solve
+   * @returns {void}
+  */
+  function handleSelectSolve(solve) {
+    selectedSolve = solve;
+  }
+
+  function handleCloseSolve() {
+    selectedSolve = null;
+  }
+
+  let updateError = $state('');
+
+  /**
+   * @param {any} changes
+   * @returns {Promise<void>}
+   */
+  async function handleUpdateSolve(changes) {
+    if (!selectedSolve || !activeSessionId) return;
+
+    const number = selectedSolve.number;
+
+    try {
+      await updateSolve(activeSessionId, number, changes);
+
+      solves = solves.map(solve =>
+        solve.number === number ? { ...solve, ...changes } : solve
+      );
+
+      if (selectedSolve?.number === number) {
+        selectedSolve = { ...selectedSolve, ...changes };
+      }
+
+      updateError = '';
+    } catch (error) {
+      updateError = 'Failed to update solve.';
+      console.error(error);
+    }
   }
 </script>
 
@@ -106,7 +154,7 @@
         {:else if storageError}
           <p role="alert">{storageError}</p>
         {:else}
-          <SolveList {solves} ondelete={handleDeleteSolve} />
+          <SolveList {solves} onselect={handleSelectSolve} />
         {/if}
       </div>
     </aside>
@@ -116,6 +164,10 @@
     </section>
   </main>
 </div>
+
+{#if selectedSolve}
+  <SolveDetails solve={selectedSolve} onclose={handleCloseSolve} ondelete={handleDeleteSolve} onupdate={handleUpdateSolve} />
+{/if}
  
 <style>
   main {

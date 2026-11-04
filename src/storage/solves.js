@@ -62,3 +62,35 @@ export async function saveSolve(sessionId, solve) {
 export async function deleteSolve(sessionId, number) {
     await db.table('solves').delete([sessionId, number]);
 }
+
+/**
+ * Atjaunina liciena komentāru vai sodu.
+ * 
+ * @param {string} sessionId
+ * @param {number} number
+ * @param {Partial<Pick<SavedSolve, 'comment' | 'solvePenalty'>>} changes
+ * @returns {Promise<void>}
+ */
+export async function updateSolve(sessionId, number, changes) {
+  const updates = {};
+
+  if (changes.comment !== undefined) {
+    updates.comment = changes.comment;
+  }
+
+  if (changes.solvePenalty !== undefined) {
+    if (!['OK', '+2', 'DNF'].includes(changes.solvePenalty)) {
+      throw new Error('Invalid solve penalty');
+    }
+
+    updates.solvePenalty = changes.solvePenalty;
+  }
+
+  if (Object.keys(updates).length === 0) return;
+
+  const updated = await db.table('solves').update([sessionId, number], updates);
+
+  if (updated === 0) {
+    throw new Error('Solve not found');
+  }
+}
