@@ -1,7 +1,7 @@
 // Taimera kontrolieris: savieno stāvokļu automātu (core) ar pārlūku (laiks, taustiņi).
 import { transition } from '../../core/timerMachine.js';
 
-const DEFAULT_HOLD_MS = 0; // TODO: vēlāk no iestatījumiem (IES-01)
+const DEFAULT_HOLD_MS = 550; // TODO: vēlāk no iestatījumiem (IES-01)
 
 /**
  * @param {{ getHoldMs?: () => number, onStopped?: (result: { timeMs: number, startedAt: number }) => void }} options
@@ -66,7 +66,7 @@ export function createTimer({ getHoldMs = () => DEFAULT_HOLD_MS, onStopped = () 
   * @param {KeyboardEvent} event
   */
   function onKeydown(event) {
-    if (event.code !== 'Space') return;
+    if (state !== 'running' && event.code !== 'Space') return; // ļauj apstādināt ar jebkuru taustiņu, bet tikai Space atļauj sākt
     event.preventDefault(); // neļauj lapai ritināties
     if (event.repeat) return; // ignorē atkārtotus notikumus, kad taustiņš ir turēts
     send('down');
@@ -76,14 +76,18 @@ export function createTimer({ getHoldMs = () => DEFAULT_HOLD_MS, onStopped = () 
   * @param {KeyboardEvent} event
   */
   function onKeyup(event) {
-    if (event.code !== 'Space') return;
+    if (state !== 'stopped' && event.code !== 'Space') return; // ļauj apstādināt ar jebkuru taustiņu
     event.preventDefault();
     send('up');
   }
 
   // Ja logs zaudē fokusu, taustiņa atlaišanas notikums nekad nenotiek.
   function onBlur() {
-    send('cancel');
+    if (state === 'stopped') {
+      send('up');
+    } else {
+      send('cancel');
+    }
   }
 
   return {
