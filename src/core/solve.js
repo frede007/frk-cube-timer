@@ -4,6 +4,7 @@
  * @typedef {Object} Solve
  * @property {number} startedAt
  * @property {number} timeMs
+ * @property {string} scramble
  * @property {string} comment
  * @property {Penalty} inspectionPenalty
  * @property {Penalty} solvePenalty
@@ -13,14 +14,15 @@
  * @param {Object} props
  * @param {number} props.startedAt
  * @param {number} props.timeMs
+ * @param {string} props.scramble
  * @param {string} [props.comment]
  * @param {Penalty} [props.inspectionPenalty]
  * @param {Penalty} [props.solvePenalty]
  * @returns {Solve}
  */
 
-export function createSolve({ startedAt, timeMs, comment = '', inspectionPenalty = 'OK', solvePenalty = 'OK' }) {
-    return { startedAt , timeMs , comment , inspectionPenalty , solvePenalty };
+export function createSolve({ startedAt, timeMs,  scramble, comment = '', inspectionPenalty = 'OK', solvePenalty = 'OK' }) {
+    return { startedAt , timeMs , scramble, comment , inspectionPenalty , solvePenalty };
 }
 
 /**
