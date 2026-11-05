@@ -1,6 +1,7 @@
 <script>
   import { formatTime } from '../../core/formatTime.js';
   import { formatDateTime } from '../../core/formatDateTime.js';
+  import { formatDisplayTime } from '../../core/formatTime.js';
   import SessionsStats from '../stats/SessionStats.svelte';
   /** @typedef {import('../../storage/solves.js').SavedSolve} SavedSolve */
 
@@ -19,6 +20,8 @@
         <tr>
           <th>#</th>
           <th>Time</th>
+          <th>Ao5</th>
+          <th>Ao12</th>
         </tr>
       </thead>
       <tbody>
@@ -27,12 +30,14 @@
             <td>{solves.length - i}</td>
             <td>
               <button class="solve-time" onclick={() => onselect?.(solve)}> <!-- Nospiežot uz laika, solve objekts tiek padots onselect funkcijai -->
-                {formatTime(solve.timeMs)}
+                {formatDisplayTime(solve)}
               </button>
             </td>
+            <td> - </td>
+            <td> - </td>
           </tr>
         {:else}
-          <tr><td colspan="2">No solves found</td></tr>
+          <tr><td colspan="4">No solves found</td></tr>
         {/each}
       </tbody>
     </table>

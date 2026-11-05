@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { formatTime } from '../../core/formatTime.js';
+  import { formatDisplayTime } from '../../core/formatTime.js';
   import { formatDateTime } from '../../core/formatDateTime.js';
   /** @typedef {import('../../storage/solves.js').SavedSolve} SavedSolve */
 
@@ -29,7 +29,7 @@
   <div class="details">
     <h2>Solve details</h2>
 
-    <p><strong>Time:</strong> {formatTime(solve.timeMs)}</p>
+    <p><strong>Time:</strong> {formatDisplayTime(solve)}</p>
     <p><strong>Date:</strong> {formatDateTime(solve.startedAt)}</p>
     <p><strong>Scramble:</strong> {solve.scramble ?? 'Not available'}</p>
 

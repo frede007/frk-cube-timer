@@ -16,3 +16,27 @@ export function formatTime(ms) {
   }
   return `${seconds}.${cs}`;
 }
+
+/** @typedef {import('./solve.js').Solve} Solve */
+import { fullSolveTime } from './solve.js';
+
+/** 
+ * @param {Solve} solve 
+ * @return {string}
+ */
+export function formatDisplayTime(solve) {
+  const time = fullSolveTime(solve);
+  if (time === null) {
+    return 'DNF'
+  }
+  let display = formatTime(time);
+  if (solve.inspectionPenalty === '+2') {
+    display += '+';
+  }
+  if (solve.solvePenalty === '+2') {
+    display += '+';
+  }
+  return display;
+}
+
+// TODO: Write tests for formatDisplayTime function
