@@ -38,7 +38,7 @@ export async function saveSolve(sessionId, solve) {
         }
 
         const newSolve = {
-            ...solve,
+            ...solve, // iekopē vērtības no solve objekta
             sessionId,
             number: session.nextSolveNumber
         };
@@ -60,7 +60,15 @@ export async function saveSolve(sessionId, solve) {
  * @param {number} number
  */
 export async function deleteSolve(sessionId, number) {
+  await db.transaction('rw', 'solves', async () => {
+    const solve = await db.table('solves').get([sessionId, number]);
+
+    if (!solve) {
+      throw new Error('Solve not found');
+    }
+
     await db.table('solves').delete([sessionId, number]);
+  });
 }
 
 /**

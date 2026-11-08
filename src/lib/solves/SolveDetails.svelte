@@ -13,13 +13,125 @@
     dialog?.showModal();
   });
 
-  /** @type {{ solve: SavedSolve, onclose: () => void, ondelete: (number: number) => void, onupdate: (changes: any) => void }} */
+  /** @type {{ solve: SavedSolve, onclose: () => void, ondelete: (number: number) => Promise<void>, onupdate: (changes: any) => Promise<void> }} */
   let { solve, onclose, ondelete, onupdate } = $props();
 
   let comment = $state('');
+  // Komentāra ievades lauka vērtība tiek iestatīta uz solve.comment, kad komponente tiek attēlota.
   onMount(() => {
     comment = solve.comment ?? '';
   });
+
+
+  /** @typedef {import('../../core/solve.js').Penalty} Penalty */
+
+  /** @type {Penalty[]} */
+  const penalties = ['OK', '+2', 'DNF'];
+
+  /*
+  let saving = $state(false);
+  let actionError = $state('');
+  */
+
+  /** @param {*} changes */
+  /*
+  async function handleUpdate(changes) {
+    if (saving) return;
+
+    saving = true;
+    actionError = '';
+
+    try {
+      await onupdate(changes);
+    } catch (error) {
+      actionError = 'Failed to update solve.';
+      console.error(error);
+    } finally {
+      saving = false;
+    }
+  }
+  */
+
+  /** @param {number} solveNumber*/
+  /*
+  async function handleDelete(solveNumber) {
+    if (saving) return;
+
+    saving = true;
+    actionError = '';
+
+    try {
+      await ondelete(solveNumber);
+    } catch (error) {
+      actionError = 'Failed to delete solve.';
+      console.error(error);
+    } finally {
+      saving = false;
+    }
+  }
+
+  */
+
+  
+
+  let saving = $state(false);
+  let actionError = $state('');
+
+  let pendingOperation = Promise.resolve();
+  let operationCount = 0;
+
+  /**
+   * Pievieno asinhronu darbību rindai, nodrošinot tās secīgu izpildi.
+   * Apstrādā kļūdas un atjaunina saglabāšanas stāvokli.
+   * @param {() => Promise<void>} action
+   * @param {string} errorMessage
+   * @returns {Promise<void>}
+   */
+  function queueOperation(action, errorMessage) {
+    operationCount++;
+    saving = true;
+
+    pendingOperation = pendingOperation.then(async () => {
+      actionError = '';
+
+      try {
+        await action();
+      } catch (error) {
+        actionError = errorMessage;
+        console.error(error);
+      } finally {
+        operationCount--;
+        saving = operationCount > 0;
+      }
+    });
+
+    return pendingOperation;
+  }
+
+  /**
+   * Pievieno liciena atjaunināšanas darbību rindai.
+   * @param {Partial<Pick<SavedSolve, 'comment' | 'solvePenalty'>>} changes
+   * @returns {Promise<void>}
+   */
+  function handleUpdate(changes) {
+    return queueOperation(
+      () => onupdate(changes),
+      'Failed to update solve.'
+    );
+  }
+
+  /**
+   * Pievieno liciena dzēšanas darbību rindai.
+   * @param {number} solveNumber
+   * @returns {Promise<void>}
+   */
+  function handleDelete(solveNumber) {
+    return queueOperation(
+      () => ondelete(solveNumber),
+      'Failed to delete solve.'
+    );
+  }
+  
 </script>
 
 <!-- logs tiek aizvērts, kad lietotājs ar peli spiež ārpus tā -->
@@ -44,7 +156,7 @@
         comment = comment.trim();
 
         if (comment !== (solve.comment ?? '')) {
-          onupdate({ comment });
+          handleUpdate({ comment });
         }
       }}
       rows="3"
@@ -55,14 +167,14 @@
 
     <div class="penalties">
       <p><strong>Solve penalty:</strong></p>
-      {#each ['OK', '+2', 'DNF'] as penalty}
+      {#each penalties as penalty}
         <button
           class="btn penalty-btn"
           type="button"
           class:active={solve.solvePenalty === penalty}
           onclick={() => {
             if (solve.solvePenalty !== penalty) {
-              onupdate({ solvePenalty: penalty });
+              handleUpdate({ solvePenalty: penalty });
             }
           }}
         >
@@ -71,11 +183,15 @@
       {/each}
     </div>
 
+    {#if actionError}
+      <p role="alert">{actionError}</p>
+    {/if}
+
     <div class="actions">
       <button class="btn close-btn" autofocus onclick={() => dialog.close()}>
         Close
       </button>
-      <button class="btn delete-btn" onclick={() => ondelete?.(solve.number)}>
+      <button class="btn delete-btn" onclick={() => handleDelete(solve.number)}>
         Delete
       </button>
     </div>
@@ -118,7 +234,6 @@
   }
 
   .close-btn {
-
     width: 20%;
   }
 
