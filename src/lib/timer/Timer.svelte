@@ -3,7 +3,6 @@
   import TimerDisplay from './TimerDisplay.svelte';
   import { formatTime } from '../../core/formatTime.js';
 
-  // Funkcija, ko izsauc, kad taimeris apturēts: onfinish({ timeMs })
   let { onfinish } = $props();
 
   const timer = createTimer({ onStopped: (result) => onfinish?.(result) });

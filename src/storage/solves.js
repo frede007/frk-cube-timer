@@ -13,10 +13,7 @@ import { db } from './db.js';
  * @returns {Promise<SavedSolve[]>}
  */
 export async function listSolves(sessionId) {
-    return await db.table('solves')
-        .where('sessionId')
-        .equals(sessionId)
-        .sortBy('number');
+    return await db.table('solves').where('sessionId').equals(sessionId).sortBy('number');
 }
 
 /**

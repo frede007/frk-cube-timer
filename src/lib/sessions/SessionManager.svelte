@@ -16,8 +16,8 @@
     const trimmedName = name.trim();
     createError = '';
 
-    if (trimmedName.length > 42) {
-      createError = 'Session name cannot be longer than 42 letters.';
+    if (trimmedName.length > 30) {
+      createError = 'Session name cannot be longer than 30 letters.';
       return;
     }
 
@@ -87,7 +87,7 @@
 
   /** @param {string} sessionId 
     * @param {string} name
-  */
+    */
   async function handleUpdate(sessionId, name) {
     if (updating) return;
 
@@ -135,7 +135,7 @@
       {/if}
     </form>
 
-    <!-- Session items -->
+    <!-- Sesijas ieraksti -->
     {#each sessions as session (session.id)}
       <div class="session-item">
         {#if editingSessionId === session.id}

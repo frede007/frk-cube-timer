@@ -1,25 +1,42 @@
 <script>
-  import { bestSolve, sessionMean } from '../../core/stats.js';
+  import { bestSolve, sessionMean, nonDNFSolveCount } from '../../core/stats.js';
   import { fullSolveTime } from '../../core/solve.js';
   import { formatTime } from '../../core/formatTime.js';
+
+  /** @typedef {import('../../storage/solves.js').SavedSolve} SavedSolve */
  
-  /** @type {{ solves: import('../../core/solve.js').Solve[] }} */
-  let { solves } = $props();
+  /** @type {{ solves: SavedSolve[],
+               onselect?: (solve: SavedSolve) => void }} */
+  let { solves, onselect } = $props();
  
   const best = $derived(bestSolve(solves));
   const bestTime = $derived(best === null ? null : fullSolveTime(best));
   const mean = $derived(sessionMean(solves));
+  const nonDNFCount = $derived(nonDNFSolveCount(solves));
+  const solveCount = $derived(solves.length);
  
   /** @param {number | null} ms */
   function show(ms) {
-    return ms === null ? '–' : formatTime(ms);
+    return ms === null ? '-' : formatTime(ms);
   }
 </script>
  
 <div class="stats">
   <div>
     <span class="label">Best</span>
-    <span class="value">{show(bestTime)}</span>
+    <!-- class:active un onclick if pārbaude, vai ir kaut vai viens liciens sesijā -->
+    <button class="solve-time" class:active={best !== null} 
+      onclick={() => {
+        if (best !== null) {
+          onselect?.(best);
+        }
+      }}> <!-- Nospiežot uz laika, solve objekts tiek padots onselect funkcijai -->
+      {show(bestTime)}
+    </button>
+  </div>
+  <div>
+    <span class="label">Count</span>
+    <span class="value">{nonDNFCount}/{solveCount}</span>
   </div>
   <div>
     <span class="label">Mean</span>
@@ -44,5 +61,19 @@
  
   .value {
     font-weight: bold;
+  }
+
+  .solve-time {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    font-weight: bold;
+  }
+
+  .stats button.active:hover {
+    text-decoration: underline;
+    cursor: pointer;
   }
 </style>

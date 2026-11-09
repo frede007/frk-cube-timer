@@ -7,13 +7,15 @@
   /** @type {HTMLDialogElement} */
   let dialog;
 
-  // $effect tiek izpildīts pēc komponenta attēlošanas, 
+  // $effect tiek izpildīts pēc komponenta pievienošanas, 
   // tāpēc dialog.showModal() tiek izsaukts tikai tad, kad logs jau ir pievienots DOM.
   $effect(() => {
     dialog?.showModal();
   });
 
-  /** @type {{ solve: SavedSolve, onclose: () => void, ondelete: (number: number) => Promise<void>, onupdate: (changes: any) => Promise<void> }} */
+  /** @type {{ solve: SavedSolve, onclose: () => void, 
+               ondelete: (number: number) => Promise<void>, 
+               onupdate: (changes: any) => Promise<void> }} */
   let { solve, onclose, ondelete, onupdate } = $props();
 
   let comment = $state('');
@@ -71,8 +73,6 @@
   }
 
   */
-
-  
 
   let saving = $state(false);
   let actionError = $state('');
@@ -143,7 +143,8 @@
 
     <p><strong>Time:</strong> {formatDisplayTime(solve)}</p>
     <p><strong>Date:</strong> {formatDateTime(solve.startedAt)}</p>
-    <p><strong>Scramble:</strong> {solve.scramble ?? 'Not available'}</p>
+    <label for="scramble"><strong>Scramble:</strong></label>
+    <p id="scramble">{solve.scramble ?? 'Not available'}</p>
 
     <label for="comment"><strong>Comment:</strong></label>
     <!-- Bez stopPropagation atstarpes taustiņš nestrādā komentāra ievadē -->
@@ -200,7 +201,7 @@
 
 <style>
   dialog {
-    width: min(90vw, 500px);
+    width: min(90vw, 600px);
     padding: 0;
     border: 1px solid #888;
     border-radius: 12px;

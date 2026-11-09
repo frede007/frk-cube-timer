@@ -23,25 +23,31 @@
   /** @type {string | null}*/
   let activeSessionId = $state(null);
 
+  let currentScramble = $state(generateScramble());
+
   let loading = $state(true);
   let storageError = $state('');
 
+  // Sākotnējā datu ielādes funkcija, kad lietotājs atver taimeri
   async function loadInitialData() {
     try {
       sessions = await listSessions();
 
+      // Ja nav neviena sesija, izveido noklusējuma sesiju
       if (sessions.length === 0) {
-        const session = await createSession();
+        const session = await createSession('Default');
         sessions = [session];
       }
 
       const savedSessionId = localStorage.getItem('activeSessionId');
 
+      // Mēģina iegūt iepriekš pēdējo atvērto sesiju no localstorage, ja tāda nav, tad iestata pirmo sesiju sarakstā
       const session = sessions.find(s => s.id === savedSessionId) ?? sessions[0];
 
       activeSessionId = session.id;
       localStorage.setItem('activeSessionId', session.id);
 
+      // Iegūst visus orādītās aktīvas sesijas licienus, ievieto tos solves masīvā
       solves = await listSolves(activeSessionId);
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -55,34 +61,11 @@
     loadInitialData();
   });
 
-
-  /**
-   * @param {string} sessionId
-   */
-  async function handleSelectSession(sessionId) {
-    if (sessionId === activeSessionId) return;
-
-    activeSessionId = sessionId;
-    localStorage.setItem('activeSessionId', sessionId);
-
-    selectedSolve = null;
-    loading = true;
-    storageError = '';
-
-    try {
-      solves = await listSolves(sessionId);
-    } catch (error) {
-      console.error('Failed to load solves for the selected session:', error);
-      storageError = 'Failed to load solves for the selected session.';
-    } finally {
-      loading = false;
-    }
-  }
-
   // $inspect(solves);
   $inspect(sessions);
 
-  let currentScramble = $state(generateScramble());
+
+  // Licienu pārvaldības funkcijas
  
   // Taimera dati (Salikšanas laika dati) tiek padoti liciena saglabāšanas funkcijai.
   /**
@@ -124,6 +107,7 @@
 
     await deleteSolve(sessionId, solveNumber);
 
+    // Ja izdzēstā liciena sesija vēl ir aktīva, tad izfiltrē izdzēsto licienu no licienu saraksta
     if (activeSessionId === sessionId) {
       solves = solves.filter(solve => solve.number !== solveNumber);
     }
@@ -149,8 +133,8 @@
     selectedSolve = null;
   }
 
-
   /**
+   * Mēģina atjaunot liciena datus
    * @param {any} changes
    * @returns {Promise<void>}
    */
@@ -165,6 +149,7 @@
 
     await updateSolve(sessionId, number, changes);
 
+    // Ja liciena sesija vēl ir aktīva, tad atjauno licienu arī solves masīvā
     if (activeSessionId === sessionId) {
       solves = solves.map(solve =>
         solve.number === number ? { ...solve, ...changes } : solve
@@ -178,7 +163,33 @@
     }
   }
 
-  // Session management
+  
+  // Sesiju pārvaldības funkcijas
+
+  /**
+   * Atver sesiju pēc padotā ID, iestata to kā aktīvo sesiju localstorage, mēģina iegūt sesijas licienus
+   * @param {string} sessionId
+   */
+  async function handleSelectSession(sessionId) {
+    if (sessionId === activeSessionId) return;
+
+    activeSessionId = sessionId;
+    localStorage.setItem('activeSessionId', sessionId);
+
+    selectedSolve = null;
+    loading = true;
+    storageError = '';
+
+    try {
+      solves = await listSolves(sessionId);
+    } catch (error) {
+      console.error('Failed to load solves for the selected session:', error);
+      storageError = 'Failed to load solves for the selected session.';
+    } finally {
+      loading = false;
+    }
+  }
+
   let sessionManagerOpen = $state(false);
   
   function openSessionManager() {
@@ -271,7 +282,12 @@
 </div>
 
 {#if selectedSolve}
-  <SolveDetails solve={selectedSolve} onclose={handleCloseSolve} ondelete={handleDeleteSolve} onupdate={handleUpdateSolve} />
+  <SolveDetails 
+    solve={selectedSolve} 
+    onclose={handleCloseSolve} 
+    ondelete={handleDeleteSolve} 
+    onupdate={handleUpdateSolve} 
+  />
 {/if}
 {#if sessionManagerOpen}
   <SessionManager

@@ -42,7 +42,7 @@ export function createTimer({ getHoldMs = () => DEFAULT_HOLD_MS, onStopped = () 
       frameId = requestAnimationFrame(tick);
     } else if (newState === 'stopped') {
       elapsedMs = now - startTime;
-      onStopped({ timeMs: elapsedMs, startedAt }); // nodod rezultātu tālāk (uz LIC-01)
+      onStopped({ timeMs: elapsedMs, startedAt }); // nodod rezultātu tālāk liciena saglabāšanas funkciju
     }
   }
 
