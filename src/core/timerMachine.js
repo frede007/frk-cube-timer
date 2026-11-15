@@ -1,7 +1,10 @@
 // Taimera stāvokļu automāts (TMR-01, TMR-02).
 // Stāvokļi: idle, holding, ready, running, stopped
 // Notikumi: down, up, holdElapsed, cancel
-/** @type {Record<string, Record<string, string>>} */
+
+/** @typedef {'idle' | 'holding' | 'ready' | 'running' | 'stopped'} TimerState */
+
+/** @type {Record<TimerState, Record<string, TimerState>>} */
 export const transitions = {
   idle: { down: 'holding' },
   holding: { up: 'idle', holdElapsed: 'ready', cancel: 'idle' },
@@ -12,9 +15,9 @@ export const transitions = {
 
 /**
  * Atgriež nākamo stāvokli vai null, ja notikums šajā stāvoklī nav atļauts.
- * @param {string} state
+ * @param {TimerState} state
  * @param {string} event
- * @returns {string | null}
+ * @returns {TimerState | null}
  */
 export function transition(state, event) {
   return transitions[state]?.[event] ?? null;

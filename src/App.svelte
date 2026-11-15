@@ -25,6 +25,8 @@
 
   let currentScramble = $state(generateScramble());
 
+  let timerState = $state('idle');
+
   let loading = $state(true);
   let storageError = $state('');
 
@@ -240,13 +242,16 @@
     );
   }
 
-  
+  /** */
+  function genSetNewScramble() {
+    currentScramble = generateScramble();
+  }
 </script>
 
 
 <div class="app-layout">
   <header class="scramble-header">
-    <ScrambleDisplay scramble={currentScramble} />
+    <ScrambleDisplay scramble={currentScramble} newscramble={genSetNewScramble} timerState={timerState} />
   </header>
 
   <main>
@@ -276,7 +281,7 @@
     </aside>
 
     <section class="center">
-      <Timer onfinish={handleFinish} />
+      <Timer onstatechange={(state) => timerState = state} onfinish={handleFinish} />
     </section>
   </main>
 </div>
@@ -319,7 +324,7 @@
 
   .list-box {
     width: 75%;
-    height: 50%;
+    height: 70%;
     min-height: 0;
     overflow: hidden;
     display: flex;
@@ -345,7 +350,7 @@
   }
 
   .scramble-header {
-    width: 75%;
+    width: fit-content;
     justify-self: center;
     align-self: start;
     padding-top: 2rem;

@@ -30,32 +30,34 @@
   /** @type {Penalty[]} */
   const penalties = ['OK', '+2', 'DNF'];
 
-  /*
   let saving = $state(false);
+  let editingComment = $state(false);
   let actionError = $state('');
-  */
 
-  /** @param {*} changes */
-  /*
+  /**
+   * Atjaunina liciena datus.
+   * @param {Partial<Pick<SavedSolve, 'comment' | 'solvePenalty'>>} changes
+   * @returns {Promise<boolean>}
+   */
   async function handleUpdate(changes) {
-    if (saving) return;
+    if (saving) return false;
 
     saving = true;
     actionError = '';
 
     try {
       await onupdate(changes);
+      return true;
     } catch (error) {
       actionError = 'Failed to update solve.';
       console.error(error);
+      return false;
     } finally {
       saving = false;
     }
   }
-  */
 
   /** @param {number} solveNumber*/
-  /*
   async function handleDelete(solveNumber) {
     if (saving) return;
 
@@ -72,72 +74,36 @@
     }
   }
 
-  */
+  async function saveComment() {
+    const trimmed = comment.trim();
 
-  let saving = $state(false);
-  let actionError = $state('');
+    if (trimmed === (solve.comment ?? '')) {
+      editingComment = false;
+      return;
+    }
 
-  let pendingOperation = Promise.resolve();
-  let operationCount = 0;
+    const success = await handleUpdate({ comment: trimmed });
 
-  /**
-   * Pievieno asinhronu darbību rindai, nodrošinot tās secīgu izpildi.
-   * Apstrādā kļūdas un atjaunina saglabāšanas stāvokli.
-   * @param {() => Promise<void>} action
-   * @param {string} errorMessage
-   * @returns {Promise<void>}
-   */
-  function queueOperation(action, errorMessage) {
-    operationCount++;
-    saving = true;
-
-    pendingOperation = pendingOperation.then(async () => {
-      actionError = '';
-
-      try {
-        await action();
-      } catch (error) {
-        actionError = errorMessage;
-        console.error(error);
-      } finally {
-        operationCount--;
-        saving = operationCount > 0;
-      }
-    });
-
-    return pendingOperation;
+    if (success) {
+      comment = trimmed;
+      editingComment = false;
+    }
   }
 
-  /**
-   * Pievieno liciena atjaunināšanas darbību rindai.
-   * @param {Partial<Pick<SavedSolve, 'comment' | 'solvePenalty'>>} changes
-   * @returns {Promise<void>}
-   */
-  function handleUpdate(changes) {
-    return queueOperation(
-      () => onupdate(changes),
-      'Failed to update solve.'
-    );
+  function cancelComment() {
+    comment = solve.comment ?? '';
+    editingComment = false;
   }
-
-  /**
-   * Pievieno liciena dzēšanas darbību rindai.
-   * @param {number} solveNumber
-   * @returns {Promise<void>}
-   */
-  function handleDelete(solveNumber) {
-    return queueOperation(
-      () => ondelete(solveNumber),
-      'Failed to delete solve.'
-    );
-  }
-  
 </script>
 
 <!-- logs tiek aizvērts, kad lietotājs ar peli spiež ārpus tā -->
 <!-- Kad logs tiek aizvērts, tiek izsaukta onclose funkcija -->
 <dialog bind:this={dialog} onclose={onclose} 
-        onclick={(event) => {if (event.target === dialog) dialog.close();}}> <!-- logs tiek aizvērts, kad lietotājs ar peli spiež ārpus tā -->
+        onclick={(event) => {
+          if (event.target === dialog && !editingComment && !saving) {
+            dialog.close();
+          }
+        }}> <!-- logs tiek aizvērts, kad lietotājs ar peli spiež ārpus tā, ja netiek rakstīts komentārs, un netiek veikta saglabāšana datubāzē -->
   <div class="details">
     <h2>Solve details</h2>
 
@@ -153,16 +119,22 @@
       bind:value={comment}
       onkeydown={(event) => event.stopPropagation()}
       onkeyup={(event) => event.stopPropagation()}
-      onblur={() => {
-        comment = comment.trim();
-
-        if (comment !== (solve.comment ?? '')) {
-          handleUpdate({ comment });
-        }
-      }}
+      onfocus={() => editingComment = true}
+      disabled={saving}
       rows="3"
       placeholder="Add a comment..."
     ></textarea>
+    {#if editingComment}
+      <div>
+        <button class="btn" type="button" onclick={saveComment} disabled={saving}>
+          Save comment
+        </button>
+
+        <button class="btn" type="button" onclick={cancelComment} disabled={saving}>
+          Cancel
+        </button>
+      </div>
+    {/if}
 
     <p><strong>Inspection penalty:</strong> {solve.inspectionPenalty}</p>
 
@@ -172,6 +144,7 @@
         <button
           class="btn penalty-btn"
           type="button"
+          disabled={editingComment || saving}
           class:active={solve.solvePenalty === penalty}
           onclick={() => {
             if (solve.solvePenalty !== penalty) {
@@ -189,10 +162,10 @@
     {/if}
 
     <div class="actions">
-      <button class="btn close-btn" autofocus onclick={() => dialog.close()}>
+      <button class="btn close-btn" autofocus onclick={() => {cancelComment(); dialog.close();}}>
         Close
       </button>
-      <button class="btn delete-btn" onclick={() => handleDelete(solve.number)}>
+      <button class="btn delete-btn" disabled={saving} onclick={() => {cancelComment(); handleDelete(solve.number)}}>
         Delete
       </button>
     </div>
