@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { generateScramble } from './scramble.js';
 
 describe('generateScramble', () => {
-  it('ģenerē tieši 22 griezienus', () => {
+  it('ģenerē tieši 26 griezienus', () => {
     const scramble = generateScramble();
     const moves = scramble.split(' ');
 
-    expect(moves).toHaveLength(22);
+    expect(moves).toHaveLength(26);
   });
 
   it('netiek ģenerēti secīgi griezieni uz vienas ass', () => {

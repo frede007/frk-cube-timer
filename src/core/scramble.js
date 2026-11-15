@@ -42,7 +42,7 @@ function weightedRandomElement(items, weights) {
  * @param {number} length
  * @returns {string}
  */
-export function generateScramble(length = 22) {
+export function generateScramble(length = 26) {
   /** @type {CubeFace[]} */
   const faces = ['U', 'D', 'L', 'R', 'F', 'B'];
   /** @type {Record<CubeFace, string>} */
@@ -63,7 +63,6 @@ export function generateScramble(length = 22) {
     let faceMove;
     do {
       faceMove = randomElement(faces);
-
     } while (lastMove && axes[faceMove] === axes[lastMove]); // Neļauj ģenerēt secīgus griezienus uz vienas ass
 
     lastMove = faceMove;

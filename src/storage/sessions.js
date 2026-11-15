@@ -48,7 +48,7 @@ export async function listSessions() {
 /**
  * Atjaunina sesijas datus.
  * @param {string} sessionId 
- * @param {*} changes 
+ * @param {*} changes // TODO: add precise types for changes object
  * @returns {Promise<void>}
  */
 export async function updateSession(sessionId, changes) {
@@ -72,6 +72,7 @@ export async function updateSession(sessionId, changes) {
 
   if (Object.keys(updates).length === 0) return;
 
+  // Beigās atgriež cik ieraksti tika atjaunināti.
   const updated = await db.table('sessions').update(sessionId, updates);
 
   if (updated === 0) {

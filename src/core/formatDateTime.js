@@ -1,3 +1,4 @@
+//@ts-nocheck
 // Atgriež datumu un laiku vietējā laika zonā formātā "2026-10-25 14:32:07".
 /**
  * @param {number} ms

@@ -1,12 +1,15 @@
 // Taimera kontrolieris: savieno stāvokļu automātu (core) ar pārlūku (laiks, taustiņi).
 import { transition } from '../../core/timerMachine.js';
 
+/** @typedef {import('../../core/timerMachine.js').TimerState} TimerState */
+
 const DEFAULT_HOLD_MS = 0; // TODO: vēlāk no iestatījumiem (IES-01)
 
 /**
  * @param {{ getHoldMs?: () => number, onStopped?: (result: { timeMs: number, startedAt: number }) => void }} options
  */
 export function createTimer({ getHoldMs = () => DEFAULT_HOLD_MS, onStopped = () => {} } = {}) {
+  /** @type {TimerState} */
   let state = $state('idle');
   let elapsedMs = $state(0);
 
@@ -19,7 +22,7 @@ export function createTimer({ getHoldMs = () => DEFAULT_HOLD_MS, onStopped = () 
   * @param {string} event
   */
   function send(event) {
-    const now = performance.now(); // nolasa pirms jebkādas citas darbības
+    const now = performance.now(); // nolasa pirms jebkādas citas darbības\
     const next = transition(state, event);
     if (!next) return; // notikums šajā stāvoklī nav atļauts
     leave(state);
@@ -42,7 +45,7 @@ export function createTimer({ getHoldMs = () => DEFAULT_HOLD_MS, onStopped = () 
       frameId = requestAnimationFrame(tick);
     } else if (newState === 'stopped') {
       elapsedMs = now - startTime;
-      onStopped({ timeMs: elapsedMs, startedAt }); // nodod rezultātu tālāk (uz LIC-01)
+      onStopped({ timeMs: elapsedMs, startedAt }); // nodod rezultātu tālāk liciena saglabāšanas funkciju
     }
   }
 

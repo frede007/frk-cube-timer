@@ -17,6 +17,15 @@ export function formatTime(ms) {
   return `${seconds}.${cs}`;
 }
 
+/**
+ * Nogriež laiku līdz sekundes simtdaļām.
+ * @param {number} ms
+ * @returns {number}
+ */
+export function truncTo100(ms) {
+  return Math.floor(ms / 10) * 10;
+}
+
 /** @typedef {import('./solve.js').Solve} Solve */
 import { fullSolveTime } from './solve.js';
 
@@ -40,3 +49,11 @@ export function formatDisplayTime(solve) {
 }
 
 // TODO: Write tests for formatDisplayTime function
+
+/** 
+ * @param {number | null} time
+ * @return {string}
+ */
+export function formatDisplayAverage(time) {
+  return time === null ? 'DNF' : formatTime(time);
+}

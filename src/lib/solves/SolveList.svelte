@@ -1,18 +1,29 @@
 <script>
-  import { formatTime } from '../../core/formatTime.js';
-  import { formatDateTime } from '../../core/formatDateTime.js';
-  import { formatDisplayTime } from '../../core/formatTime.js';
+  import { formatDisplayTime, formatDisplayAverage } from '../../core/formatTime.js';
   import SessionsStats from '../stats/SessionStats.svelte';
+  import { calcMean, calcAverage, calcCurrentAverage } from '../../core/stats.js';
   /** @typedef {import('../../storage/solves.js').SavedSolve} SavedSolve */
 
   /** @type {{ solves: SavedSolve[],
                onselect?: (solve: SavedSolve) => void
             }} */
   let { solves, onselect } = $props();
+
+
+  /** 
+   * @param {SavedSolve[]} solves
+   * @param {number} index
+   * @param {number} count
+  */
+  function runningAverage(solves, index, count) {
+    if (index + 1 < count) return null;
+
+    return calcAverage(solves.slice(index - count + 1, index + 1));
+  }
 </script>
 
 <div class="panel">
-  <SessionsStats {solves} />
+  <SessionsStats {solves} onselect={onselect} />
   <div class="rows">
     <!-- Saraksts ar visiem salikšanas rezultātiem. -->
     <table class="solve-list">
@@ -33,8 +44,20 @@
                 {formatDisplayTime(solve)}
               </button>
             </td>
-            <td> - </td>
-            <td> - </td>
+            <td>
+              {#if solves.length - i >= 5}
+                {formatDisplayAverage(runningAverage(solves, solves.length - 1 - i, 5))}
+              {:else}
+                -
+              {/if}
+            </td>
+            <td>
+              {#if solves.length - i >= 12}
+                {formatDisplayAverage(runningAverage(solves, solves.length - 1 - i, 12))}
+              {:else}
+                -
+              {/if}
+            </td>
           </tr>
         {:else}
           <tr><td colspan="4">No solves found</td></tr>

@@ -3,10 +3,23 @@
   import TimerDisplay from './TimerDisplay.svelte';
   import { formatTime } from '../../core/formatTime.js';
 
-  // Funkcija, ko izsauc, kad taimeris apturēts: onfinish({ timeMs })
-  let { onfinish } = $props();
+  /** @typedef {import('../../core/timerMachine.js').TimerState} TimerState*/
+/** @typedef {{ timeMs: number, startedAt: number }} TimerResult */
+
+  /**
+   * @type {{
+   *   onfinish?: (result: TimerResult) => void,
+   *   onstatechange?: (state: TimerState) => void
+   * }}
+   */
+
+  let { onfinish, onstatechange } = $props();
 
   const timer = createTimer({ onStopped: (result) => onfinish?.(result) });
+
+  $effect(() => {
+    onstatechange?.(timer.state)
+  })
 </script>
 
 <svelte:window onkeydown={timer.onKeydown} onkeyup={timer.onKeyup} onblur={timer.onBlur} />
